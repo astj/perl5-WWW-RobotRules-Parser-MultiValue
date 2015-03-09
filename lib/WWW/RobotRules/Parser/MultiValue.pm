@@ -173,3 +173,108 @@ sub _translate_rate { # into delay in milliseconds
 
 1;
 __END__
+
+=head1 NAME
+
+WWW::RobotRules::Parser::MultiValue - Parse robots.txt
+
+=head1 SYNOPSIS
+
+    use WWW::RobotRules::Parser::MultiValue;
+    use LWP::Simple qw(get);
+
+    my $url = 'http://example.com/robots.txt';
+    my $robots_txt = get $url;
+
+    my $rules = WWW::RobotRules::Parser::MultiValue->new(
+        agent => 'TestBot/1.0',
+    );
+    $rules->parse($url, $robots_txt);
+
+    if ($rules->allows('http://example.com/some/path')) {
+        my $delay = $rules->delay_for('http://example.com/');
+        sleep $delay;
+        ...
+    }
+
+    my $hash = $rules->rules_for('http://example.com/');
+    my @list_of_allowed_paths = $hash->get_all('allow');
+    my @list_of_custom_rule_value = $hash->get_all('some-rule');
+
+=head1 DESCRIPTION
+
+C<WWW::RobotRules::Parser::MultiValue> is a parser for C<robots.txt>.
+
+Parsed rules for the specified user agent is stored as a
+L<Hash::MultiValue>, where the key is a lower case rule name.
+
+C<Request-rate> rule is handled specially.  It is normalized to
+C<Crawl-delay> rule.
+
+=head1 METHODS
+
+=over 4
+
+=item new
+
+    $rules = WWW::RobotRules::Parser::MultiValue->new(aget => $user_agent);
+
+Creates a new object to handle rules in C<robots.txt>.  The object
+parses rules match with C<$user_agent>.
+
+=item parse
+
+    $rules->parse($uri, $text);
+
+Parses a text content C<$text> whose URI is C<$uri>.
+
+=item match_ua
+
+    $rules->match_ua($pattern);
+
+Test if the user agent matches with C<$pattern>.
+
+=item rules_for
+
+    $hash = $rules->rules_for($uri);
+
+Returns a C<Hash::MultiValue>, which describes the rules of the domain
+of C<$uri>.
+
+=item allows
+
+    $test = $rules->allows($uri);
+
+Tests if the user agent is allowed to visit C<$uri>.  If there is
+'Allow' rule for the path of C<$uri>, then the C<$uri> is allowed to
+visit.  If there is 'Disallow' rule for the path of C<$uri>, then the
+C<$uri> is not allowed to visit.  Otherwise, the C<$uri> is allowed to
+visit.
+
+=item delay_for
+
+    $delay = $rules->delay_for($uri);
+    $delay_in_milliseconds = $rules->delay_for($uri, 1000);
+
+Calculate a crawl delay for the specified C<$uri>.  The value is
+determined by 'Crawl-delay' rule or 'Request-rate' rule.  The second
+argument specifies the base of the return value.
+
+=back
+
+=head1 SEE ALSO
+
+L<Hash::MultiValue>
+
+=head1 LICENSE
+
+Copyright (C) INA Lintaro
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+INA Lintaro E<lt>tarao.gnn@gmail.comE<gt>
+
+=cut
