@@ -8,3 +8,5 @@ before_install:
   - cpanm Carton
 install:
   - carton install
+script:
+  - carton exec prove -lvr t
