@@ -40,10 +40,19 @@ Parsed rules for the specified user agent is stored as a
 
 - new
 
-        $rules = WWW::RobotRules::Parser::MultiValue->new(aget => $user_agent);
+        $rules = WWW::RobotRules::Parser::MultiValue->new(
+            aget => $user_agent
+        );
+        $rules = WWW::RobotRules::Parser::MultiValue->new(
+            aget => $user_agent,
+            ignore_default => 1,
+        );
 
     Creates a new object to handle rules in `robots.txt`.  The object
-    parses rules match with `$user_agent`.
+    parses rules match with `$user_agent`.  The rules of `User-agent: *`
+    always match and have a lower precedence than the rules explicitly
+    matched with `$user_agent`.  If `ignore_default` option is
+    specified, rules of `User-agent: *` are simply ignored.
 
 - parse
 
