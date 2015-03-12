@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.014;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 # core
 use Scalar::Util qw(blessed);
