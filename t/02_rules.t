@@ -1,4 +1,4 @@
-package t::WWW::RobotRules::Parser::MultiValue;
+package t::rules;
 
 # cpan
 use parent qw(Test::Class);
