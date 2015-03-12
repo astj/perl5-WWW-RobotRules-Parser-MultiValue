@@ -14,7 +14,7 @@ use Text::Glob qw(match_glob);
 use Hash::MultiValue;
 use Class::Accessor::Lite (
     new => 1,
-    ro => [qw(agent)],
+    ro => [qw(agent ignore_default)],
 );
 
 use constant {
@@ -91,9 +91,11 @@ sub parse {
         }
     }
 
-    # Add rules for default UA as a lower precedence
-    $self->_rules($domain)->add($_ => $anon_rules->get_all($_))
-        for $anon_rules->keys;
+    unless ($self->ignore_default) {
+        # Add rules for default UA as a lower precedence
+        $self->_rules($domain)->add($_ => $anon_rules->get_all($_))
+            for $anon_rules->keys;
+    }
 
     return $self;
 }
@@ -217,10 +219,19 @@ C<Crawl-delay> rule.
 
 =item new
 
-    $rules = WWW::RobotRules::Parser::MultiValue->new(aget => $user_agent);
+    $rules = WWW::RobotRules::Parser::MultiValue->new(
+        aget => $user_agent
+    );
+    $rules = WWW::RobotRules::Parser::MultiValue->new(
+        aget => $user_agent,
+        ignore_default => 1,
+    );
 
 Creates a new object to handle rules in C<robots.txt>.  The object
-parses rules match with C<$user_agent>.
+parses rules match with C<$user_agent>.  The rules of C<User-agent: *>
+always match and have a lower precedence than the rules explicitly
+matched with C<$user_agent>.  If C<ignore_default> option is
+specified, rules of C<User-agent: *> are simply ignored.
 
 =item parse
 
