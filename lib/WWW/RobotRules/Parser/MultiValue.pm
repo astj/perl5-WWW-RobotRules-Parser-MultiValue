@@ -14,7 +14,7 @@ use Text::Glob qw(match_glob);
 use Hash::MultiValue;
 use Class::Accessor::Lite (
     new => 1,
-    ro => [qw(agent ignore_default)],
+    ro => [qw(agent agents ignore_default)],
 );
 
 use constant {
@@ -103,7 +103,9 @@ sub parse {
 sub match_ua {
     my ($self, $pattern) = @_;
     return WILDCARD if $pattern eq '*';
-    return ME if index(lc $self->_short_agent, lc($pattern)) >= 0;
+    foreach my $agent (@{$self->_short_agents}) {
+        return ME if index(lc $agent, lc($pattern)) >= 0;
+    }
     return undef;
 }
 
@@ -136,9 +138,18 @@ sub delay_for {
     return $delay;
 }
 
-sub _short_agent {
+sub _agents {
     my ($self) = @_;
-    my $name = $self->agent;
+    return $self->agents || [$self->agent];
+}
+
+sub _short_agents {
+    my ($self) = @_;
+    return map { _make_short_agent($_) } @{$self->_agents};
+}
+
+sub _make_short_agent {
+    my ($name) = @_;
     $name = $1 if $name =~ m!^(\S+)!; # first word
     $name =~ s!/.*$!!; # no version
     return $name;
