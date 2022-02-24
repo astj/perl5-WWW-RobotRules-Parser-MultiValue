@@ -14,7 +14,7 @@ use Text::Glob qw(match_glob);
 use Hash::MultiValue;
 use Class::Accessor::Lite (
     new => 1,
-    ro => [qw(agent ignore_default)],
+    ro => [qw(agent agents ignore_default)],
 );
 
 use constant {
@@ -103,7 +103,9 @@ sub parse {
 sub match_ua {
     my ($self, $pattern) = @_;
     return WILDCARD if $pattern eq '*';
-    return ME if index(lc $self->_short_agent, lc($pattern)) >= 0;
+    foreach my $agent (@{$self->_short_agents}) {
+        return ME if index(lc $agent, lc($pattern)) >= 0;
+    }
     return undef;
 }
 
@@ -136,9 +138,18 @@ sub delay_for {
     return $delay;
 }
 
-sub _short_agent {
+sub _agents {
     my ($self) = @_;
-    my $name = $self->agent;
+    return $self->agents || [$self->agent];
+}
+
+sub _short_agents {
+    my ($self) = @_;
+    return [map { _make_short_agent($_) } @{$self->_agents}];
+}
+
+sub _make_short_agent {
+    my ($name) = @_;
     $name = $1 if $name =~ m!^(\S+)!; # first word
     $name =~ s!/.*$!!; # no version
     return $name;
@@ -220,10 +231,10 @@ C<Crawl-delay> rule.
 =item new
 
     $rules = WWW::RobotRules::Parser::MultiValue->new(
-        aget => $user_agent
+        agent => $user_agent
     );
     $rules = WWW::RobotRules::Parser::MultiValue->new(
-        aget => $user_agent,
+        agent => $user_agent,
         ignore_default => 1,
     );
 
@@ -232,6 +243,14 @@ parses rules match with C<$user_agent>.  The rules of C<User-agent: *>
 always match and have a lower precedence than the rules explicitly
 matched with C<$user_agent>.  If C<ignore_default> option is
 specified, rules of C<User-agent: *> are simply ignored.
+
+Additionally, you can pass multiple user agent strings as construct
+parameters.  In this case, rules matched for C<$user_agent1> and
+C<$user_agent2> will be merged.
+
+    $rules = WWW::RobotRules::Parser::MultiValue->new(
+        agents => [$user_agent1, $user_agent2]
+    );
 
 =item parse
 
@@ -244,6 +263,8 @@ Parses a text content C<$text> whose URI is C<$uri>.
     $rules->match_ua($pattern);
 
 Test if the user agent matches with C<$pattern>.
+If multiple user agents are specified in constructor, this returns truthy
+when any of the agents matches with gien C<$pattern>.
 
 =item rules_for
 

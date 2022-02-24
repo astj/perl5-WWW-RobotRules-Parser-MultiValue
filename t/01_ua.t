@@ -35,6 +35,16 @@ sub match_ua : Tests {
         ok !$robots->match_ua('TestBot/1.1');
         ok !$robots->match_ua('GuestBot');
     };
+
+    subtest 'Multiple agents' => sub {
+        my $robots = $Class->new(agents => ['TestBot', 'AnotherBot']);
+        is $robots->match_ua('*'), $Class->WILDCARD;
+        is $robots->match_ua('TestBot'), $Class->ME;
+        is $robots->match_ua('AnotherBot'), $Class->ME;
+        ok !$robots->match_ua('TestBot/1.1');
+        ok !$robots->match_ua('GuestBot');
+    };
+
 }
 
 __PACKAGE__->runtests;

@@ -104,6 +104,32 @@ sub allows : Tests {
         };
     };
 
+    subtest 'Matches multiple rule' => sub {
+        subtest 'http' => sub {
+            my $robots = $Class->new(agents => ['TestBot/1.0', 'AnotherBot/2.5']);
+            lives_ok {
+                $robots->parse(
+                    'http://example.com/robots.txt',
+                    _fixture('multi_match'),
+                );
+            };
+            ok !$robots->allows('http://example.com/');
+            ok $robots->allows('http://example.com/some/allowed/path');
+            ok !$robots->allows('http://example.com/some/disallowed/path');
+            ok $robots->allows('http://example.com/some/great/path');
+            ok !$robots->allows('http://example.com/some/forbidden/path');
+            ok $robots->allows('http://example.com/some/over-written/path');
+            ok !$robots->allows('http://example.com/some/thing');
+            ok $robots->allows('http://example.com/some/other/path');
+            ok !$robots->allows('http://example.com/yet/another/path');
+
+            ok $robots->allows('http://other.example.com/some/disallowed/path'),
+                'Domain name must match to apply rules';
+            ok $robots->allows('https://example.com/ssl/path'),
+                'Port number must match to apply rules';
+        };
+    };
+
     subtest 'Extended rule' => sub {
         my $robots = $Class->new(agent => $_);
         lives_ok {
@@ -248,6 +274,35 @@ Allow: /some/allowed/path
 Disallow: /some/disallowed/path
 Disallow: /some
 Allow: /some/other/path
+Allow: http://example.com/absolute/path
+Disallow: https://example.com/ssl/path
+Crawl-delay: 10
+
+@@ multi_match
+
+User-agent: *
+
+Disallow: /
+Request-rate: 1/5
+
+User-agent: TestBot
+
+Allow: /some/great/path
+Disallow: /some/forbidden/path
+Disallow: /some/over-written/path
+
+User-agent: GuestBot
+
+Disallow: /some/other/path
+Request-rate: 2/1
+
+User-agent: AnotherBot
+
+Allow: /some/allowed/path
+Disallow: /some/disallowed/path
+Disallow: /some
+Allow: /some/other/path
+Allow: /some/over-written/path
 Allow: http://example.com/absolute/path
 Disallow: https://example.com/ssl/path
 Crawl-delay: 10
