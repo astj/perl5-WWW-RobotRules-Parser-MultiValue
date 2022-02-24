@@ -1,0 +1,17 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v2
+    - uses: shogo82148/actions-setup-perl@v1
+      with:
+        perl-version: '5.20'
+    - run: cpanm Carton
+    - run: carton install
+    - run: carton exec prove -lvr t
