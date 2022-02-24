@@ -12,6 +12,6 @@ jobs:
     - uses: shogo82148/actions-setup-perl@v1
       with:
         perl-version: '5.20'
-        install-modules-with: cpm
+        install-modules-with: carton
         install-modules-args: --with-develop --with-configure
     - run: carton exec prove -lvr t
