@@ -231,10 +231,10 @@ C<Crawl-delay> rule.
 =item new
 
     $rules = WWW::RobotRules::Parser::MultiValue->new(
-        aget => $user_agent
+        agent => $user_agent
     );
     $rules = WWW::RobotRules::Parser::MultiValue->new(
-        aget => $user_agent,
+        agent => $user_agent,
         ignore_default => 1,
     );
 
@@ -243,6 +243,14 @@ parses rules match with C<$user_agent>.  The rules of C<User-agent: *>
 always match and have a lower precedence than the rules explicitly
 matched with C<$user_agent>.  If C<ignore_default> option is
 specified, rules of C<User-agent: *> are simply ignored.
+
+Additionally, you can pass multiple user agent strings as construct
+parameters.  In this case, rules matched for C<$user_agent1> and
+C<$user_agent2> will be merged.
+
+    $rules = WWW::RobotRules::Parser::MultiValue->new(
+        agents => [$user_agent1, $user_agent2]
+    );
 
 =item parse
 
@@ -255,6 +263,8 @@ Parses a text content C<$text> whose URI is C<$uri>.
     $rules->match_ua($pattern);
 
 Test if the user agent matches with C<$pattern>.
+If multiple user agents are specified in constructor, this returns truthy
+when any of the agents matches with gien C<$pattern>.
 
 =item rules_for
 
