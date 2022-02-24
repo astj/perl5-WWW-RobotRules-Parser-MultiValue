@@ -145,7 +145,7 @@ sub _agents {
 
 sub _short_agents {
     my ($self) = @_;
-    return map { _make_short_agent($_) } @{$self->_agents};
+    return [map { _make_short_agent($_) } @{$self->_agents}];
 }
 
 sub _make_short_agent {
